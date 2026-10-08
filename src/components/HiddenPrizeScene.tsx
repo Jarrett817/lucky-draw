@@ -1,20 +1,126 @@
+import confetti from 'canvas-confetti'
 import { motion } from 'framer-motion'
 import { ChevronLeft, Wind } from 'lucide-react'
+import { useEffect } from 'react'
 import { HIDDEN_PRIZE } from '@/data/prizes'
-import { Confetti } from './Confetti'
 
 interface HiddenPrizeSceneProps {
   onBack: () => void
 }
 
+/** 终极大奖的金色调色板 (金色 + 玫瑰 + 白) */
+const GOLD_COLORS = [
+  '#fbbf24',
+  '#f59e0b',
+  '#f97316',
+  '#fde68a',
+  '#fca5a5',
+  '#fbcfe8',
+  '#ffffff',
+  '#fcd34d',
+]
+
 /**
- * The standalone "hidden prize" page for the 徕芬吹风机.
- * Only reachable after every regular card has been opened (gated in App).
- * Cinematic single-shot reveal: envelope folds open → spotlight tightens
- * → product name + blessing spring in, with a heavier confetti salvo.
+ * 终极大奖彩蛋页面: 解锁后从底部 + 两侧 + 空中多点持续喷发金色
+ * 彩带烟花 (比普通翻牌更盛大: 粒子更多、持续更长、金色调),
+ * 加上全屏金色闪光 + 放大脉冲. canvas-confetti 渲染, 不拦截点击.
+ */
+function fireGrandBurst() {
+  const timers: ReturnType<typeof setTimeout>[] = []
+
+  const fire = (opts: confetti.Options) => {
+    confetti({ ...opts, colors: GOLD_COLORS, disableForReducedMotion: true })
+  }
+
+  // 底部大礼炮 — 连发 4 轮, 每轮渐弱
+  const bottomCannon = (delay: number, count: number, spread: number) => {
+    const t = setTimeout(() => {
+      fire({
+        particleCount: count,
+        spread,
+        origin: { y: 1 },
+        startVelocity: 52,
+        scalar: 1.5,
+        ticks: 400,
+      })
+    }, delay)
+    timers.push(t)
+  }
+
+  // 左右两侧礼炮
+  const sideCannon = (delay: number, side: 'left' | 'right') => {
+    const t = setTimeout(() => {
+      fire({
+        particleCount: 60,
+        angle: side === 'left' ? 60 : 120,
+        spread: 80,
+        origin: { x: side === 'left' ? 0 : 1, y: 0.7 },
+        startVelocity: 45,
+        scalar: 1.4,
+        ticks: 350,
+      })
+    }, delay)
+    timers.push(t)
+  }
+
+  // 空中烟花 — 7 朵, 比普通翻牌多 2 朵
+  const firework = (delay: number) => {
+    const t = setTimeout(() => {
+      fire({
+        particleCount: 80,
+        spread: 360,
+        startVelocity: 40,
+        origin: {
+          x: 0.1 + Math.random() * 0.8,
+          y: 0.15 + Math.random() * 0.45,
+        },
+        scalar: 1.3,
+        ticks: 300,
+      })
+    }, delay)
+    timers.push(t)
+  }
+
+  // --- 放映时间线 (6 秒盛大演出) ---
+  bottomCannon(0, 140, 110)
+  bottomCannon(250, 120, 100)
+  sideCannon(400, 'left')
+  sideCannon(400, 'right')
+  bottomCannon(500, 100, 90)
+  firework(600)
+  sideCannon(900, 'left')
+  sideCannon(900, 'right')
+  firework(1100)
+  firework(1500)
+  bottomCannon(1700, 80, 80)
+  firework(1900)
+  firework(2300)
+  sideCannon(2500, 'left')
+  sideCannon(2500, 'right')
+  bottomCannon(2800, 60, 70)
+  firework(3100)
+  firework(3500)
+  bottomCannon(3800, 50, 60)
+  firework(4200)
+  bottomCannon(4600, 40, 50)
+
+  return () => {
+    timers.forEach((t) => {
+      clearTimeout(t)
+    })
+    confetti.reset()
+  }
+}
+
+/**
+ * 终极大奖彩蛋页面 (徕芬吹风机). 集齐 12 张卡片后解锁.
+ * 电影级揭示: 金色聚光灯收紧 → 卡片 3D 翻入 → 全屏金色闪光 +
+ * 盛大彩带烟花 (6 秒, 底部+两侧+空中多点, 金色调).
  */
 export function HiddenPrizeScene({ onBack }: HiddenPrizeSceneProps) {
   const [from, to] = HIDDEN_PRIZE.gradient
+
+  useEffect(() => fireGrandBurst(), [])
 
   return (
     <motion.div
@@ -24,6 +130,18 @@ export function HiddenPrizeScene({ onBack }: HiddenPrizeSceneProps) {
       transition={{ duration: 0.6 }}
       className="relative flex min-h-[100svh] w-full flex-col items-center justify-center px-6 py-12"
     >
+      {/* 全屏金色闪光: 入场瞬间一次强闪 */}
+      <motion.div
+        initial={{ opacity: 0.9 }}
+        animate={{ opacity: 0 }}
+        transition={{ duration: 0.8, ease: 'easeOut' }}
+        className="pointer-events-none absolute inset-0 z-30"
+        style={{
+          background:
+            'radial-gradient(circle at center, rgba(255,215,0,0.6) 0%, transparent 60%)',
+        }}
+      />
+
       {/* Tighter spotlight for the final reveal */}
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
@@ -62,8 +180,6 @@ export function HiddenPrizeScene({ onBack }: HiddenPrizeSceneProps) {
           background: `linear-gradient(160deg, ${from} 0%, ${to} 100%)`,
         }}
       >
-        <Confetti count={56} />
-
         <div className="relative mx-auto my-6 mt-2 flex h-28 w-28 items-center justify-center">
           <motion.div
             animate={{

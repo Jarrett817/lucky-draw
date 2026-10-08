@@ -188,7 +188,7 @@ export interface HiddenPrize {
 export const HIDDEN_PRIZE: HiddenPrize = {
   id: 'laifen-dryer',
   name: '徕芬吹风机',
-  blessing: '集齐十二福,惊喜降临——徕芬吹风机,愿秀发如瀑,日日顺滑。',
+  blessing: '惊喜降临——徕芬吹风机,愿秀发如瀑,日日顺滑。',
   emoji: '🌬️',
   gradient: ['#fbbf24', '#f97316'],
 }
