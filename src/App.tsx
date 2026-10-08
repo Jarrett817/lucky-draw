@@ -171,7 +171,7 @@ function Title() {
       transition={{ duration: 0.5 }}
       className="mb-2 text-center"
     >
-      <h1 className="font-carnival text-2xl text-rose-400 drop-shadow-lg sm:text-3xl">
+      <h1 className="font-carnival text-4xl text-rose-400 drop-shadow-lg sm:text-5xl">
         W&L&apos;s Carnival
       </h1>
     </motion.div>
