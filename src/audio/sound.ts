@@ -232,8 +232,15 @@ function sfxGateOpen() {
 // ---------- 公开 API ----------
 
 /**
- * 由用户首次交互调用. 解锁 AudioContext + 构建 BGM 节点并立即触发首拍.
- * 之后再按静音切换 / 播 SFX 都直接走已建好的节点.
+ * 仅解锁 AudioContext (不启动 BGM). 用于首页首次交互,
+ * 让点击音效可用, 但不播放背景音乐.
+ */
+export async function unlockAudio() {
+  await Tone.start()
+}
+
+/**
+ * 构建 BGM 节点并立即触发首拍. 仅在进入抽奖页时调用.
  */
 export async function ensureAudioStarted() {
   await buildBgm()

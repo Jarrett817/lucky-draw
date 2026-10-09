@@ -128,7 +128,7 @@ export function HiddenPrizeScene({ onBack }: HiddenPrizeSceneProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.6 }}
-      className="relative flex min-h-[100svh] w-full flex-col items-center justify-center px-6 py-12"
+      className="relative flex h-[100vh] w-full flex-col items-center justify-center px-6 py-12"
     >
       {/* 全屏金色闪光: 入场瞬间一次强闪 */}
       <motion.div

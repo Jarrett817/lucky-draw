@@ -111,9 +111,11 @@
   body,
   #root {
     height: 100%;
+    width: 100%;
   }
   body {
     margin: 0;
+    overflow: hidden;
     @apply bg-background text-foreground;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -230,8 +232,35 @@
   mask-mode: luminance;
   -webkit-mask-repeat: no-repeat;
   mask-repeat: no-repeat;
-  -webkit-mask-size: cover;
-  mask-size: cover;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+/* Inverse luminance mask: removes white/near-white backgrounds from JPG
+   sticker images (cats, cake) without mix-blend-mode (which breaks in
+   animated/transformed stacking contexts).
+
+   Two-layer mask:
+     1. white gradient (alpha=1 everywhere)
+     2. the image itself in luminance mode (bright→opaque, dark→transparent)
+   Composite: subtract → result = layer1 - layer2
+     white bg (luminance≈1): 1 − 1 = 0  → transparent ✓
+     illustration (luminance≈0): 1 − 0 = 1 → visible ✓
+   This is self-contained (no background dependency) so transforms/animations
+   on parent elements don't break it. */
+.bg-remove {
+  -webkit-mask-image: linear-gradient(#fff, #fff), var(--img-url);
+  -webkit-mask-mode: alpha, luminance;
+  -webkit-mask-composite: source-out;
+  mask-image: linear-gradient(#fff, #fff), var(--img-url);
+  mask-mode: alpha, luminance;
+  mask-composite: subtract;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
   -webkit-mask-position: center;
   mask-position: center;
 }

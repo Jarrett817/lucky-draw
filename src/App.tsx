@@ -7,6 +7,7 @@ import {
   playReveal,
   playUnlock,
   setBgmMuted,
+  unlockAudio,
 } from '@/audio/sound'
 import { FrameOverlay } from '@/components/FrameOverlay'
 import { FullScreenBurst } from '@/components/FullScreenBurst'
@@ -14,11 +15,12 @@ import { HiddenPrizeScene } from '@/components/HiddenPrizeScene'
 import { PrizeCard } from '@/components/PrizeCard'
 import { PrizeRevealDialog } from '@/components/PrizeRevealDialog'
 import { StageBackground } from '@/components/StageBackground'
+import { WelcomeScene } from '@/components/WelcomeScene'
 import { Button } from '@/components/ui/button'
 import { PRIZES, type Prize } from '@/data/prizes'
 import { useRevealedPrizes } from '@/hooks/useRevealedPrizes'
 
-type View = 'stage' | 'hidden'
+type View = 'welcome' | 'stage' | 'hidden'
 
 export default function App() {
   const { revealedCount, total, allRevealed, reveal, isRevealed, reset } =
@@ -26,18 +28,17 @@ export default function App() {
 
   const [active, setActive] = useState<Prize | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [view, setView] = useState<View>('stage')
+  const [view, setView] = useState<View>('welcome')
   const [bgmMuted, setBgmMutedState] = useState(false)
   // 彩带烟花 key: 翻牌瞬间自增触发, 5.8s 后自动清除 (独立于弹窗状态,
   // 避免弹窗关闭时彩带被一起卸载看不到完整喷发)
   const [burstKey, setBurstKey] = useState<number | null>(null)
 
-  // 浏览器拦截自动播放: 用户首次 pointerdown / keydown 时解锁
-  // AudioContext + 构建 BGM 节点并启动循环. 一次性, 之后 SFX / 静音
-  // 切换直接走已建好的合成器节点.
+  // 浏览器拦截自动播放: 用户首次 pointerdown / keydown 时解锁 AudioContext.
+  // 仅解锁, 不启动 BGM — BGM 在进入抽奖页时才启动.
   useEffect(() => {
     const unlock = () => {
-      ensureAudioStarted()
+      unlockAudio()
       window.removeEventListener('pointerdown', unlock)
       window.removeEventListener('keydown', unlock)
     }
@@ -76,6 +77,12 @@ export default function App() {
     setView('hidden')
   }, [])
 
+  const handleEnterStage = useCallback(() => {
+    playClick()
+    ensureAudioStarted()
+    setView('stage')
+  }, [])
+
   const handleReset = useCallback(() => {
     reset()
     setView('stage')
@@ -90,12 +97,14 @@ export default function App() {
   }, [bgmMuted])
 
   return (
-    <div className="relative min-h-[100svh] w-full text-white">
+    <div className="relative h-[100vh] w-screen overflow-hidden text-white">
       <StageBackground />
       <FrameOverlay />
 
       <AnimatePresence mode="wait">
-        {view === 'stage' ? (
+        {view === 'welcome' ? (
+          <WelcomeScene key="welcome" onEnter={handleEnterStage} />
+        ) : view === 'stage' ? (
           <motion.main
             key="stage"
             initial={{ opacity: 0 }}
@@ -104,7 +113,7 @@ export default function App() {
             transition={{ duration: 0.5 }}
             // 一屏布局: h-[100svh] + overflow-hidden 杜绝页面级滚动;
             // padding 让标题 / 控制条 / 网格全部落在线框图内部.
-            className="relative z-10 flex h-[100svh] flex-col items-center overflow-hidden px-[6vw] pb-[12vh] pt-[12vh]"
+            className="relative z-10 flex h-[100vh] flex-col items-center overflow-hidden px-[6vw] pb-[12vh] pt-[12vh]"
           >
             <Title />
 

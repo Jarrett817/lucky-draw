@@ -1,5 +1,5 @@
 import bgCurtain from '@/assets/bg-curtain.jpg'
-import bgCurtainV2 from '@/assets/bg-curtain-v2.jpg'
+import bgCurtainV2 from '@/assets/bg-curtain-v3.jpg'
 
 /**
  * Base stage backdrop only — the AI-generated deep crimson velvet curtain
@@ -16,7 +16,7 @@ const bgSrc = USE_V2 ? bgCurtainV2 : bgCurtain
 
 export function StageBackground() {
   return (
-    <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       <img
         src={bgSrc}
         alt=""
